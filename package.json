@@ -1,0 +1,35 @@
+{
+  "name": "5ktransaction",
+  "version": "0.0.0",
+  "description": "5k transaction 4 Vlad ;)",
+  "main": "app.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev src/index.ts",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+  },
+  "author": "Sash[ok]",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "pg": "^8.16.0",
+    "sequelize": "^6.37.7",
+    "umzug": "^3.8.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.27.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^18.17.14",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-prettier": "4.2.1",
+    "globals": "^16.2.0",
+    "prettier": "^2.7.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.2.2"
+  }
+}
