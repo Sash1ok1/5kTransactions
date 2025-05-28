@@ -10,4 +10,9 @@ const DATABASE_URL = `postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_P
 export const sequelize = new Sequelize(DATABASE_URL!, {
   dialect: 'postgres',
   logging: false,
+  pool: {
+    max: 1000,
+    min: 100,
+    idle: 10000,
+  },
 })

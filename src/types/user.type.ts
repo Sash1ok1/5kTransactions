@@ -1,1 +1,1 @@
-export type UserBalance = { balance: number }
+export type IUserBalance = { balance: number }

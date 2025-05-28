@@ -1,10 +1,4 @@
-import { Sequelize } from 'sequelize'
-
-export const up = async ({
-  context: queryInterface,
-}: {
-  context: Sequelize
-}) => {
+export const up = async ({ context: queryInterface }) => {
   await queryInterface.getQueryInterface().createTable('users', {
     id: {
       type: 'INTEGER',
@@ -23,10 +17,6 @@ export const up = async ({
     .bulkInsert('users', [{ balance: 10000 }])
 }
 
-export const down = async ({
-  context: queryInterface,
-}: {
-  context: Sequelize
-}) => {
+export const down = async ({ context: queryInterface }) => {
   await queryInterface.getQueryInterface().dropTable('users')
 }

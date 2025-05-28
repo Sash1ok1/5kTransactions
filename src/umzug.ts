@@ -3,7 +3,7 @@ import { sequelize } from './db'
 
 export const umzug = new Umzug({
   migrations: {
-    glob: ['src/migrations/*.ts', {}],
+    glob: ['src/migrations/*.js', {}],
   },
   context: sequelize,
   storage: new SequelizeStorage({ sequelize }),
