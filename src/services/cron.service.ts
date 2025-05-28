@@ -1,16 +1,20 @@
 import { sequelize } from '../db'
 import { randomUUID } from 'crypto'
 import { QueryTypes } from 'sequelize'
-import { ITaskBase, ITaskRan } from '../types/task.type'
+import { ITask, ITasksStatusResult } from '../types/task.type'
 
 const INSTANCE_ID = `${process.env.INSTANCE_ID ?? randomUUID()}`
-console.log({ INSTANCE_ID })
+
+async function sleep() {
+  return new Promise((resolve) => setTimeout(resolve, 2 * 60 * 1000))
+}
+
 const TASKS = [
-  { name: 'taskA', interval_seconds: 300 },
-  { name: 'taskB', interval_seconds: 330 },
-  { name: 'taskC', interval_seconds: 360 },
-  { name: 'taskD', interval_seconds: 390 },
-  { name: 'taskE', interval_seconds: 420 },
+  { name: 'taskA', interval_seconds: 300, fn: async () => sleep() },
+  { name: 'taskB', interval_seconds: 330, fn: async () => sleep() },
+  { name: 'taskC', interval_seconds: 360, fn: async () => sleep() },
+  { name: 'taskD', interval_seconds: 390, fn: async () => sleep() },
+  { name: 'taskE', interval_seconds: 420, fn: async () => sleep() },
 ]
 
 async function initializeTasks() {
@@ -39,7 +43,7 @@ async function tryLockTask(taskName: string): Promise<boolean> {
     )
 
     const counts = Object.fromEntries(
-      locks.map((r: any) => [r.id, parseInt(r.count)]),
+      locks.map((r: any) => [r.id, parseInt(r.task_count)]),
     )
 
     const currentCount = counts[INSTANCE_ID] || 0
@@ -119,7 +123,8 @@ async function executeTask(taskName: string): Promise<void> {
   )
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 2 * 60 * 1000)) // 2+ мин
+    const taskRec = TASKS.find((task) => task.name === taskName)
+    await taskRec.fn()
 
     await sequelize.query(
       `UPDATE cron_history
@@ -161,10 +166,10 @@ async function taskLoop(taskName: string): Promise<void> {
   }, 10_000)
 }
 
-export async function tasksStatus(): Promise<ITaskRan[]> {
-  const [tasks] = await sequelize.query<ITaskBase[]>(
+export async function tasksStatus(): Promise<ITasksStatusResult> {
+  const tasks = await sequelize.query<ITask>(
     `
-    SELECT name, locked_by, locked_at, 
+    SELECT name, interval_seconds, last_run_at, locked_by, locked_at,
       EXTRACT(EPOCH FROM NOW() - locked_at)::INT AS running_seconds
     FROM cron_tasks
   `,
@@ -172,9 +177,30 @@ export async function tasksStatus(): Promise<ITaskRan[]> {
       type: QueryTypes.SELECT,
     },
   )
-  return tasks
-}
 
+  const result: ITasksStatusResult = {
+    active: {},
+    wait: {},
+  }
+
+  for (const task of tasks) {
+    if (task.locked_by) {
+      result.active[task.name] = {
+        lockedAt: task.locked_at!,
+        instanceId: task.locked_by,
+        intervalSeconds: task.interval_seconds,
+        runningSeconds: task.running_seconds,
+      }
+    } else {
+      result.wait[task.name] = {
+        lastRunAt: task.last_run_at,
+        intervalSeconds: task.interval_seconds,
+      }
+    }
+  }
+
+  return result
+}
 async function startTasks() {
   for (const task of TASKS) {
     taskLoop(task.name)
